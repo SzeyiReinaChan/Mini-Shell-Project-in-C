@@ -16,6 +16,85 @@ void sigint_handler(int sig)
     exit(0);
 }
 
+//Creating Builtins
+int buildin_cd(char **args);
+int buildin_help(char **args);
+int buildin_exit(char **args);
+// int buildin_history(char **args);
+
+// array that store all the name of the buildin functions
+char *builtin_str[] = {
+    "cd",
+    "help",
+    "exit"};
+// "buildin_history"};
+
+int (*builtin_func[])(char **) = {
+    &buildin_cd,
+    &buildin_help,
+    &buildin_exit};
+// &buildin_history};
+
+int num_builtins()
+{
+    return sizeof(builtin_str) / sizeof(char *);
+}
+
+int buildin_cd(char **args)
+{
+    if (args[1] == NULL)
+    {
+        fprintf(stderr, "Command not found--Did you mean something else?\n");
+    }
+    else
+    {
+        if (chdir(args[1]) != 0)
+        {
+            perror("lsh");
+        }
+        chdir(args[1]);
+        printf("You are now in : %s\n", args[1]);
+    }
+    return 1;
+}
+
+int buildin_help(char **args)
+{
+    int i;
+    for (i = 0; i < num_builtins(); i++)
+    {
+        printf("  %s\n", builtin_str[i]);
+    }
+
+    // printf("in help\n");
+    return 1;
+}
+
+int buildin_exit(char **args)
+{
+    exit(1);
+}
+
+int non_buildin()
+{
+    // pid_t pid1;
+    // int x = 1;
+    // pid1 = fork();
+
+    // if (pid1 == 0)
+    // {
+    //     char *myargv1[2];
+    //     myargv1[0] = "ls";
+    //     myargv1[1] = NULL;
+    //     execvp(myargv1[0], myargv1);
+    // }
+    // else
+    // {
+    //     printf("parent=%d\n", getpid());
+    // }
+}
+
+//Main
 int main()
 {
     alarm(60);
@@ -26,23 +105,39 @@ int main()
     // A loop that runs forever.
     while (1)
     {
-        printf("mini-shell>");
+        int i = 0;
+        printf("mini-shell> ");
         // Read in 1 line of text
         // The line is coming from 'stdin' standard input
         fgets(line, MAX_BUFFER_SIZE, stdin);
-        // We write out to standard output
-        printf("Here is what you typed: %s\n", line);
+        // printf("Here is what you typed: %s\n", line);
 
-        // Let's see what happens when comparing a string.
-        // Think about this behavior.
-        if (strcmp(line, "help") == 0)
+        //create array to save tokens
+        char **tokens = malloc(MAX_BUFFER_SIZE * sizeof(char *));
+        char *token;
+
+        //getting words one by one and create first token in tonkens
+        token = strtok(line, " \n"); //get word
+        tokens[i] = token;
+        i++;
+
+        while (token != NULL)
         {
-            printf("You typed in help\n");
+            token = strtok(NULL, " \n");
+            tokens[i] = token;
+            i++;
         }
-        if (strcmp(line, "help\n") == 0)
+
+        //check if user input match any buildin command
+        for (i = 0; i < num_builtins(); i++)
         {
-            printf("You typed in help with an endline\n");
+            if (strcmp(tokens[0], builtin_str[i]) == 0)
+            {
+                (builtin_func[i])(tokens);
+            }
         }
+
+        free(tokens);
         sleep(1);
     }
 
