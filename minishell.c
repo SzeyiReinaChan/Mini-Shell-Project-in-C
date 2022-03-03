@@ -236,26 +236,26 @@ int main()
         }
         tokens[i] = NULL;
 
-        //check if user input match any buildin command
-        for (i = 0; i < num_builtins(); i++)
+        //check if input contain |
+        for (bar_pos = 0; tokens[bar_pos]; bar_pos++)
         {
-            if (strcmp(tokens[0], builtin_str[i]) == 0)
+            if (strcmp(tokens[bar_pos], "|") == 0)
             {
-                (builtin_func[i])(tokens);
-                printf("test");
                 exe = 1;
                 break;
             }
         }
 
+        //check if user input match any buildin command
         if (exe == 0)
         {
-            //check if input contain |
             printf("Hey!");
-            for (bar_pos = 0; tokens[bar_pos]; bar_pos++)
+
+            for (i = 0; i < num_builtins(); i++)
             {
-                if (strcmp(tokens[bar_pos], "|") == 0)
+                if (strcmp(tokens[0], builtin_str[i]) == 0)
                 {
+                    (builtin_func[i])(tokens);
                     flag = 1;
                     break;
                 }
@@ -263,17 +263,14 @@ int main()
 
             //check what function to use
 
-            if (flag == 1)
-            {
-                test_multi_commands(tokens, bar_pos);
-            }
-            else
+            if (flag != 1)
             {
                 non_buildin(tokens);
             }
 
             free(tokens);
         }
+        test_multi_commands(tokens, bar_pos);
     }
 
     int index = 0;
