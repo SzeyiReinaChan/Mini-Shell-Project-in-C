@@ -1,8 +1,3 @@
-// gcc readline.c -o readline
-//
-// This example program demonstrates
-// how to read a line in C and
-// use the string compare function.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,7 +7,7 @@
 
 void sigint_handler(int sig)
 {
-    write(1, "Mini Shell Terminated\n", 22);
+    write(1, "  Mini Shell Terminated\n", 24);
     exit(0);
 }
 
@@ -27,7 +22,7 @@ char *builtin_str[] = {
     "cd",
     "help",
     "exit"};
-// "buildin_history"};
+// "history"};
 
 int (*builtin_func[])(char **) = {
     &buildin_cd,
@@ -53,7 +48,6 @@ int buildin_cd(char **args)
             perror("lsh");
         }
         chdir(args[1]);
-        printf("You are now in : %s\n", args[1]);
     }
     return 1;
 }
@@ -66,8 +60,12 @@ int buildin_help(char **args)
         printf("  %s\n", builtin_str[i]);
     }
 
-    // printf("in help\n");
     return 1;
+}
+
+int buildin_history(char **args)
+{
+    exit(1);
 }
 
 int buildin_exit(char **args)
@@ -75,23 +73,104 @@ int buildin_exit(char **args)
     exit(1);
 }
 
-int non_buildin()
+int non_buildin(char **myargv1)
 {
-    // pid_t pid1;
-    // int x = 1;
-    // pid1 = fork();
 
-    // if (pid1 == 0)
-    // {
-    //     char *myargv1[2];
-    //     myargv1[0] = "ls";
-    //     myargv1[1] = NULL;
-    //     execvp(myargv1[0], myargv1);
-    // }
-    // else
-    // {
-    //     printf("parent=%d\n", getpid());
-    // }
+    pid_t pid1;
+    pid1 = fork();
+
+    if (-1 == pid1)
+    {
+        printf("fork 1 failed for some reason!");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid1 == 0)
+    {
+        execvp(myargv1[0], myargv1);
+    }
+    else
+    {
+        wait(NULL);
+    }
+    return 1;
+}
+
+void non_buildin_pipe(char **myargv1, char **myargv2)
+{
+    int fd1[2];
+    pipe(fd1);
+    pid_t pid1;
+    pid_t pid2;
+
+    pid1 = fork();
+
+    if (-1 == pid1)
+    {
+        printf("fork 1 failed for some reason!");
+        exit(EXIT_FAILURE);
+    }
+    else if (-1 == pid2)
+    {
+        printf("fork 2 failed for some reason!");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid1 == 0)
+    {
+        close(STDOUT_FILENO);
+        dup2(fd1[1], STDOUT_FILENO);
+        close(fd1[1]);
+        close(fd1[0]);
+        execvp(myargv1[0], myargv1);
+    }
+    else
+    {
+        wait(NULL);
+        pid2 = fork();
+
+        if (pid2 == 0)
+        {
+            close(STDIN_FILENO);
+            dup2(fd1[0], STDIN_FILENO);
+            close(fd1[1]);
+            close(fd1[0]);
+            execvp(myargv2[0], myargv2);
+        }
+        else
+        {
+            wait(NULL);
+            close(fd1[1]);
+            close(fd1[0]);
+        }
+    }
+}
+
+void test_multi_commands(char **tokens, int bar_pos)
+{
+    int x = 0;
+    int y = 0;
+    char **front = malloc(MAX_BUFFER_SIZE * sizeof(char *));
+    char **back = malloc(MAX_BUFFER_SIZE * sizeof(char *));
+
+    //getting the front part of the command
+    for (x = 0; x < bar_pos; x++)
+    {
+        front[x] = tokens[x];
+    }
+    front[x] = NULL;
+
+    //getting the back part of the command
+    for (x = bar_pos + 1, y = 0; tokens[x]; x++, y++)
+    {
+        back[y] = tokens[x];
+    }
+    back[y] = NULL;
+
+    non_buildin_pipe(front, back);
+
+    free(front);
+    free(back);
 }
 
 //Main
@@ -106,11 +185,13 @@ int main()
     while (1)
     {
         int i = 0;
+        int bar_pos = 0;
+        int flag = 0;
+
         printf("mini-shell> ");
-        // Read in 1 line of text
-        // The line is coming from 'stdin' standard input
+
+        // Reading input
         fgets(line, MAX_BUFFER_SIZE, stdin);
-        // printf("Here is what you typed: %s\n", line);
 
         //create array to save tokens
         char **tokens = malloc(MAX_BUFFER_SIZE * sizeof(char *));
@@ -127,6 +208,7 @@ int main()
             tokens[i] = token;
             i++;
         }
+        tokens[i] = NULL;
 
         //check if user input match any buildin command
         for (i = 0; i < num_builtins(); i++)
@@ -137,9 +219,26 @@ int main()
             }
         }
 
-        free(tokens);
-        sleep(1);
-    }
+        //check if
+        for (bar_pos = 0; tokens[bar_pos]; bar_pos++)
+        {
+            if (strcmp(tokens[bar_pos], "|") == 0)
+            {
+                flag = 1;
+                break;
+            }
+        }
 
+        if (flag == 1)
+        {
+            test_multi_commands(tokens, bar_pos);
+        }
+        else
+        {
+            non_buildin(tokens);
+        }
+
+        free(tokens);
+    }
     return 0;
 }
