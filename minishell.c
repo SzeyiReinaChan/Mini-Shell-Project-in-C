@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <signal.h>
 #define MAX_BUFFER_SIZE 80
+#define HISTORY_MAX_SIZE 10
 
 //Creating Builtins
 int buildin_cd(char **args);
@@ -11,6 +12,7 @@ int buildin_help(char **args);
 int buildin_exit(char **args);
 int buildin_history(char **args);
 
+char **history_list;
 // array that store all the name of the buildin functions
 char *builtin_str[] = {
     "cd",
@@ -69,13 +71,11 @@ int buildin_exit(char **args)
     exit(1);
 }
 
-char **history_list;
-
 int buildin_history(char **args)
 {
     int i;
     printf("Printing Recent 10 Histories: \n");
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < HISTORY_MAX_SIZE; i++)
     {
         if (history_list[i] != NULL)
         {
@@ -87,20 +87,20 @@ int buildin_history(char **args)
 
 int non_buildin(char **myargv1)
 {
-
     pid_t pid1;
     pid1 = fork();
 
     if (pid1 < 0)
     {
         printf("fork 1 failed for some reason!");
-        return 1;
+        exit(1);
     }
 
     if (pid1 == 0)
     {
         execvp(myargv1[0], myargv1);
         printf("Command not found--Did you mean something else?\n");
+        exit(1);
     }
     else
     {
@@ -109,7 +109,7 @@ int non_buildin(char **myargv1)
     return 1;
 }
 
-void non_buildin_pipe(char **myargv1, char **myargv2)
+int non_buildin_pipe(char **myargv1, char **myargv2)
 {
     int fd1[2];
     pipe(fd1);
@@ -159,9 +159,10 @@ void non_buildin_pipe(char **myargv1, char **myargv2)
             close(fd1[0]);
         }
     }
+    return 1;
 }
 
-void test_multi_commands(char **tokens, int bar_pos)
+int test_multi_commands(char **tokens, int bar_pos)
 {
     int x = 0;
     int y = 0;
@@ -186,27 +187,79 @@ void test_multi_commands(char **tokens, int bar_pos)
 
     free(front);
     free(back);
+
+    return 1;
+}
+
+int check_buildin(char **tokens)
+{
+    int i = 0;
+    int build_in = 0;
+    for (i = 0; i < num_builtins(); i++)
+    {
+        if (strcmp(tokens[0], builtin_str[i]) == 0)
+        {
+            build_in = 1;
+            break;
+        }
+    }
+
+    switch (build_in)
+    {
+    case 0:
+        non_buildin(tokens);
+        break;
+    case 1:
+        (builtin_func[i])(tokens);
+        break;
+    default:
+        break;
+    }
+    return 1;
+}
+
+int check_bar(char **tokens)
+{
+    int bar_pos = 0;
+    int multi_commands = 0;
+    for (bar_pos = 0; tokens[bar_pos]; bar_pos++)
+    {
+        if (strcmp(tokens[bar_pos], "|") == 0)
+        {
+            multi_commands = 1;
+            break;
+        }
+    }
+
+    switch (multi_commands)
+    {
+    case 0:
+        check_buildin(tokens);
+        break;
+    case 1:
+        test_multi_commands(tokens, bar_pos);
+        break;
+    default:
+        break;
+    }
+
+    return 1;
 }
 
 //Main
 int main()
 {
     alarm(60);
-
+    signal(SIGINT, sigint_handler);
     //READLINE START HERE:
     char line[MAX_BUFFER_SIZE]; // A buffer to hold 80 characters at most
     int history_size = 0;
-    history_list = malloc(10 * sizeof(char *));
+    history_list = malloc(HISTORY_MAX_SIZE * sizeof(char *));
 
     // A loop that runs forever.
     while (1)
     {
-        signal(SIGINT, sigint_handler);
-
         int i = 0;
-        int bar_pos = 0;
-        int flag = 0;
-        int exe = 0;
 
         printf("mini-shell> ");
 
@@ -217,9 +270,10 @@ int main()
         char **tokens = malloc(MAX_BUFFER_SIZE * sizeof(char *));
         char *token;
 
+        //saving history
         if (strcmp(line, "") != 0)
         {
-            history_list[history_size % 10] = strdup(line);
+            history_list[history_size % HISTORY_MAX_SIZE] = strdup(line);
         }
         history_size++;
 
@@ -236,48 +290,18 @@ int main()
         }
         tokens[i] = NULL;
 
-        //check if input contain |
-        for (bar_pos = 0; tokens[bar_pos]; bar_pos++)
-        {
-            if (strcmp(tokens[bar_pos], "|") == 0)
-            {
-                exe = 1;
-                break;
-            }
-        }
+        check_bar(tokens);
 
-        //check if user input match any buildin command
-        if (exe == 0)
-        {
-            printf("Hey!");
-
-            for (i = 0; i < num_builtins(); i++)
-            {
-                if (strcmp(tokens[0], builtin_str[i]) == 0)
-                {
-                    (builtin_func[i])(tokens);
-                    flag = 1;
-                    break;
-                }
-            }
-
-            //check what function to use
-
-            if (flag != 1)
-            {
-                non_buildin(tokens);
-            }
-
-            free(tokens);
-        }
-        test_multi_commands(tokens, bar_pos);
+        free(tokens);
     }
 
     int index = 0;
-    for (index = 0; index < 10; index++)
+    for (index = 0; index < HISTORY_MAX_SIZE; index++)
     {
         free(history_list[index]);
     }
+
     free(history_list);
+
     return 0;
 }
