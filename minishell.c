@@ -137,6 +137,7 @@ int non_buildin_pipe(char **myargv1, char **myargv2)
         close(fd1[0]);
         execvp(myargv1[0], myargv1);
         printf("Command not found--Did you mean something else?\n");
+        exit(1);
     }
     else
     {
@@ -151,12 +152,13 @@ int non_buildin_pipe(char **myargv1, char **myargv2)
             close(fd1[0]);
             execvp(myargv2[0], myargv2);
             printf("Command not found--Did you mean something else?\n");
+            exit(1);
         }
         else
         {
-            wait(NULL);
             close(fd1[1]);
             close(fd1[0]);
+            wait(NULL);
         }
     }
     return 1;
