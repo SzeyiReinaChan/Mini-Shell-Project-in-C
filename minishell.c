@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/wait.h>
 #define MAX_BUFFER_SIZE 80
 #define HISTORY_MAX_SIZE 10
 
