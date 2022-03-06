@@ -123,11 +123,6 @@ int non_buildin_pipe(char **myargv1, char **myargv2)
         printf("fork 1 failed for some reason!");
         exit(EXIT_FAILURE);
     }
-    else if (pid2 < 0)
-    {
-        printf("fork 2 failed for some reason!");
-        exit(EXIT_FAILURE);
-    }
 
     if (pid1 == 0)
     {
@@ -143,6 +138,12 @@ int non_buildin_pipe(char **myargv1, char **myargv2)
     {
         wait(NULL);
         pid2 = fork();
+
+        if (pid2 < 0)
+        {
+            printf("fork 2 failed for some reason!");
+            exit(EXIT_FAILURE);
+        }
 
         if (pid2 == 0)
         {
