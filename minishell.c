@@ -11,20 +11,18 @@
 int buildin_cd(char **args);
 int buildin_help(char **args);
 int buildin_exit(char **args);
-int buildin_history(char **args);
+int buildin_history(char **args, char **history_list);
 
 // array that store all the name of the buildin functions
 char *builtin_str[] = {
     "cd",
     "help",
-    "exit",
-    "history"};
+    "exit"};
 
 int (*builtin_func[])(char **) = {
     &buildin_cd,
     &buildin_help,
-    &buildin_exit,
-    &buildin_history};
+    &buildin_exit};
 
 int num_builtins()
 {
@@ -71,9 +69,7 @@ int buildin_exit(char **args)
     exit(1);
 }
 
-char **history_list;
-
-int buildin_history(char **args)
+int buildin_history(char **args, char **history_list)
 {
     int i;
     printf("Printing Recent 10 Histories: \n");
@@ -197,15 +193,20 @@ int test_multi_commands(char **tokens, int bar_pos)
     return 1;
 }
 
-int check_buildin(char **tokens)
+int check_buildin(char **tokens, char **history_list)
 {
     int i = 0;
     int build_in = 0;
     for (i = 0; i < num_builtins(); i++)
     {
-        if (strcmp(tokens[0], builtin_str[i]) == 0)
+        if (strcmp(tokens[0], "history") == 0)
         {
             build_in = 1;
+            break;
+        }
+        else if (strcmp(tokens[0], builtin_str[i]) == 0)
+        {
+            build_in = 2;
             break;
         }
     }
@@ -216,6 +217,9 @@ int check_buildin(char **tokens)
         non_buildin(tokens);
         break;
     case 1:
+        (&buildin_history)(tokens, history_list);
+        break;
+    case 2:
         (builtin_func[i])(tokens);
         break;
     default:
@@ -224,7 +228,7 @@ int check_buildin(char **tokens)
     return 1;
 }
 
-int check_bar(char **tokens)
+int check_bar(char **tokens, char **history_list)
 {
     int bar_pos = 0;
     int multi_commands = 0;
@@ -240,7 +244,7 @@ int check_bar(char **tokens)
     switch (multi_commands)
     {
     case 0:
-        check_buildin(tokens);
+        check_buildin(tokens, history_list);
         break;
     case 1:
         test_multi_commands(tokens, bar_pos);
@@ -263,6 +267,7 @@ int main()
     //set up for history
     int history_size = 0;
     int num;
+    char **history_list;
     history_list = malloc(HISTORY_MAX_SIZE * sizeof(char *));
 
     for (num = 0; num < HISTORY_MAX_SIZE; num++)
@@ -312,10 +317,10 @@ int main()
                 free(history_list[history_size % HISTORY_MAX_SIZE]);
             }
             history_list[history_size % HISTORY_MAX_SIZE] = strdup(line);
+            history_size++;
         }
-        history_size++;
 
-        check_bar(tokens);
+        check_bar(tokens, history_list);
 
         free(tokens);
     }
