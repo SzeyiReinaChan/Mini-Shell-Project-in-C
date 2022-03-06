@@ -287,16 +287,10 @@ int main()
         fgets(line, MAX_BUFFER_SIZE, stdin);
 
         //create array to save tokens
-        // char **tokens = malloc(MAX_BUFFER_SIZE * sizeof(char *));
         char *tokens[MAX_BUFFER_SIZE];
         char *token;
         int count;
         int length;
-
-        // for (count = 0; count < MAX_BUFFER_SIZE; count++)
-        // {
-        //     tokens[count] = NULL;
-        // }
 
         //getting words one by one and create first token in tonkens
         token = strtok(line, " \n"); //get word
@@ -319,22 +313,15 @@ int main()
         }
 
         check_bar(tokens, history_list);
-
-        for (x = 0; x < MAX_BUFFER_SIZE; x++)
-        {
-            free(token);
-        }
-        // free(tokens);
     }
 
     int index = 0;
-    for (index = 0; index < HISTORY_MAX_SIZE; index++)
+    for (index = 0; index < MAX_BUFFER_SIZE; index++)
     {
         free(history_list[index]);
     }
 
     free(line);
-    // free(history_list);
 
     return 0;
 }
