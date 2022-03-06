@@ -1,3 +1,6 @@
 
 .DS_Store
 prog
+minishell
+minishell.dSYM/Contents/Info.plist
+prog.dSYM/Contents/Info.plist

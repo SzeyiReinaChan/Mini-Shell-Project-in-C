@@ -81,7 +81,7 @@ int buildin_history(char **args)
     {
         if (history_list[i] != NULL)
         {
-            printf("%s", history_list[i]);
+            printf("%s\n", history_list[i]);
         }
     }
     return 1;
@@ -291,17 +291,6 @@ int main()
             tokens[count] = NULL;
         }
 
-        //saving history
-        if (strcmp(line, "") != 0)
-        {
-            if (history_size > HISTORY_MAX_SIZE)
-            {
-                free(history_list[history_size % HISTORY_MAX_SIZE]);
-            }
-            history_list[history_size % HISTORY_MAX_SIZE] = strdup(line);
-        }
-        history_size++;
-
         //getting words one by one and create first token in tonkens
         token = strtok(line, " \n"); //get word
         tokens[i] = token;
@@ -314,6 +303,17 @@ int main()
             i++;
         }
         tokens[i] = NULL;
+
+        //saving history
+        if (tokens != NULL)
+        {
+            if (history_size > HISTORY_MAX_SIZE)
+            {
+                free(history_list[history_size % HISTORY_MAX_SIZE]);
+            }
+            history_list[history_size % HISTORY_MAX_SIZE] = strdup(line);
+        }
+        history_size++;
 
         check_bar(tokens);
 
