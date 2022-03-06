@@ -267,8 +267,7 @@ int main()
     //set up for history
     int history_size = 0;
     int num;
-    char **history_list;
-    history_list = malloc(HISTORY_MAX_SIZE * sizeof(char *));
+    char *history_list[MAX_BUFFER_SIZE];
 
     for (num = 0; num < HISTORY_MAX_SIZE; num++)
     {
@@ -280,6 +279,7 @@ int main()
     {
         int i = 0;
         int j = 0;
+        int x = 0;
 
         printf("mini-shell> ");
 
@@ -287,14 +287,16 @@ int main()
         fgets(line, MAX_BUFFER_SIZE, stdin);
 
         //create array to save tokens
-        char **tokens = malloc(MAX_BUFFER_SIZE * sizeof(char *));
+        // char **tokens = malloc(MAX_BUFFER_SIZE * sizeof(char *));
+        char *tokens[MAX_BUFFER_SIZE];
         char *token;
         int count;
+        int length;
 
-        for (count = 0; count < MAX_BUFFER_SIZE; count++)
-        {
-            tokens[count] = NULL;
-        }
+        // for (count = 0; count < MAX_BUFFER_SIZE; count++)
+        // {
+        //     tokens[count] = NULL;
+        // }
 
         //getting words one by one and create first token in tonkens
         token = strtok(line, " \n"); //get word
@@ -310,19 +312,19 @@ int main()
         tokens[i] = NULL;
 
         //saving history
-        if (tokens != NULL)
+        if (tokens[0] != NULL)
         {
-            if (history_size > HISTORY_MAX_SIZE)
-            {
-                free(history_list[history_size % HISTORY_MAX_SIZE]);
-            }
             history_list[history_size % HISTORY_MAX_SIZE] = strdup(line);
             history_size++;
         }
 
         check_bar(tokens, history_list);
 
-        free(tokens);
+        for (x = 0; x < MAX_BUFFER_SIZE; x++)
+        {
+            free(token);
+        }
+        // free(tokens);
     }
 
     int index = 0;
@@ -331,7 +333,8 @@ int main()
         free(history_list[index]);
     }
 
-    free(history_list);
+    free(line);
+    // free(history_list);
 
     return 0;
 }
