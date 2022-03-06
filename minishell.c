@@ -12,12 +12,14 @@ int buildin_cd(char **args);
 int buildin_help(char **args);
 int buildin_exit(char **args);
 int buildin_history(char **args, char **history_list);
+char *history_list[HISTORY_MAX_SIZE];
 
 // array that store all the name of the buildin functions
 char *builtin_str[] = {
     "cd",
     "help",
-    "exit"};
+    "exit",
+    "history"};
 
 int (*builtin_func[])(char **) = {
     &buildin_cd,
@@ -66,13 +68,18 @@ int buildin_help(char **args)
 
 int buildin_exit(char **args)
 {
+    int index = 0;
+    for (index = 0; index < MAX_BUFFER_SIZE; index++)
+    {
+        free(history_list[index]);
+    }
     exit(1);
 }
 
 int buildin_history(char **args, char **history_list)
 {
     int i;
-    printf("Printing Recent 10 Histories: \n");
+    printf("Printing Recent Histories: \n");
     for (i = 0; i < HISTORY_MAX_SIZE; i++)
     {
         if (history_list[i] != NULL)
@@ -267,7 +274,6 @@ int main()
     //set up for history
     int history_size = 0;
     int num;
-    char *history_list[MAX_BUFFER_SIZE];
 
     for (num = 0; num < HISTORY_MAX_SIZE; num++)
     {
@@ -278,8 +284,6 @@ int main()
     while (1)
     {
         int i = 0;
-        int j = 0;
-        int x = 0;
 
         printf("mini-shell> ");
 
