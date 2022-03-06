@@ -5,7 +5,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 #define MAX_BUFFER_SIZE 80
-#define HISTORY_MAX_SIZE 10
+#define HISTORY_MAX_SIZE 1000
 
 //Creating Builtins
 int buildin_cd(char **args);
@@ -308,7 +308,7 @@ int main()
         //saving history
         if (tokens[0] != NULL)
         {
-            history_list[history_size % HISTORY_MAX_SIZE] = strdup(line);
+            history_list[history_size] = strdup(line);
             history_size++;
         }
 
