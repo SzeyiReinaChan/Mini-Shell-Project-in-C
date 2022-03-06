@@ -258,17 +258,22 @@ int main()
     signal(SIGINT, sigint_handler);
     //READLINE START HERE:
     char line[MAX_BUFFER_SIZE]; // A buffer to hold 80 characters at most
+
+    //set up for history
     int history_size = 0;
-    history_list = malloc(HISTORY_MAX_SIZE * sizeof(char *));
     int num;
+    history_list = malloc(HISTORY_MAX_SIZE * sizeof(char *));
+
     for (num = 0; num < HISTORY_MAX_SIZE; num++)
     {
         history_list[num] = NULL;
     }
+
     // A loop that runs forever.
     while (1)
     {
         int i = 0;
+        int j = 0;
 
         printf("mini-shell> ");
 
@@ -282,6 +287,10 @@ int main()
         //saving history
         if (strcmp(line, "") != 0)
         {
+            if (history_size > HISTORY_MAX_SIZE)
+            {
+                free(history_list[history_size % HISTORY_MAX_SIZE]);
+            }
             history_list[history_size % HISTORY_MAX_SIZE] = strdup(line);
         }
         history_size++;
