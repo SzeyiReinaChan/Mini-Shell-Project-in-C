@@ -17,14 +17,12 @@ int buildin_history(char **args, char **history_list);
 char *builtin_str[] = {
     "cd",
     "help",
-    "exit",
-    "history"};
+    "exit"};
 
 int (*builtin_func[])(char **) = {
     &buildin_cd,
     &buildin_help,
-    &buildin_exit,
-    &buildin_history};
+    &buildin_exit};
 
 int num_builtins()
 {
@@ -202,9 +200,14 @@ int check_buildin(char **tokens)
     int build_in = 0;
     for (i = 0; i < num_builtins(); i++)
     {
-        if (strcmp(tokens[0], builtin_str[i]) == 0)
+        if (strcmp(tokens[0], "history") == 0)
         {
             build_in = 1;
+            break;
+        }
+        else if (strcmp(tokens[0], builtin_str[i]) == 0)
+        {
+            build_in = 2;
             break;
         }
     }
@@ -215,6 +218,9 @@ int check_buildin(char **tokens)
         non_buildin(tokens);
         break;
     case 1:
+        (&buildin_history)(tokens, history_list);
+        break;
+    case 2:
         (builtin_func[i])(tokens);
         break;
     default:
