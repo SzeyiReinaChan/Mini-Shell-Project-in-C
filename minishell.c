@@ -11,9 +11,8 @@
 int buildin_cd(char **args);
 int buildin_help(char **args);
 int buildin_exit(char **args);
-int buildin_history(char **args);
+int buildin_history(char **args, char **history_list);
 
-char **history_list;
 // array that store all the name of the buildin functions
 char *builtin_str[] = {
     "cd",
@@ -72,7 +71,9 @@ int buildin_exit(char **args)
     exit(1);
 }
 
-int buildin_history(char **args)
+char **history_list;
+
+int buildin_history(char **args, char **history_list)
 {
     int i;
     printf("Printing Recent 10 Histories: \n");
@@ -253,7 +254,7 @@ int check_bar(char **tokens)
 //Main
 int main()
 {
-    alarm(60);
+    alarm(180);
     signal(SIGINT, sigint_handler);
     //READLINE START HERE:
     char line[MAX_BUFFER_SIZE]; // A buffer to hold 80 characters at most
@@ -299,7 +300,7 @@ int main()
         free(tokens);
     }
 
-    int index = 0;
+    int index;
     for (index = 0; index < HISTORY_MAX_SIZE; index++)
     {
         free(history_list[index]);
