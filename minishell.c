@@ -11,18 +11,20 @@
 int buildin_cd(char **args);
 int buildin_help(char **args);
 int buildin_exit(char **args);
-int buildin_history(char **args, char **history_list);
+int buildin_history(char **args);
 
 // array that store all the name of the buildin functions
 char *builtin_str[] = {
     "cd",
     "help",
-    "exit"};
+    "exit",
+    "history"};
 
 int (*builtin_func[])(char **) = {
     &buildin_cd,
     &buildin_help,
-    &buildin_exit};
+    &buildin_exit,
+    &buildin_history};
 
 int num_builtins()
 {
@@ -71,7 +73,7 @@ int buildin_exit(char **args)
 
 char **history_list;
 
-int buildin_history(char **args, char **history_list)
+int buildin_history(char **args)
 {
     int i;
     printf("Printing Recent 10 Histories: \n");
@@ -200,14 +202,9 @@ int check_buildin(char **tokens)
     int build_in = 0;
     for (i = 0; i < num_builtins(); i++)
     {
-        if (strcmp(tokens[0], "history") == 0)
+        if (strcmp(tokens[0], builtin_str[i]) == 0)
         {
             build_in = 1;
-            break;
-        }
-        else if (strcmp(tokens[0], builtin_str[i]) == 0)
-        {
-            build_in = 2;
             break;
         }
     }
@@ -218,9 +215,6 @@ int check_buildin(char **tokens)
         non_buildin(tokens);
         break;
     case 1:
-        (&buildin_history)(tokens, history_list);
-        break;
-    case 2:
         (builtin_func[i])(tokens);
         break;
     default:
@@ -260,13 +254,17 @@ int check_bar(char **tokens)
 //Main
 int main()
 {
-    alarm(180);
+    alarm(60);
     signal(SIGINT, sigint_handler);
     //READLINE START HERE:
     char line[MAX_BUFFER_SIZE]; // A buffer to hold 80 characters at most
     int history_size = 0;
     history_list = malloc(HISTORY_MAX_SIZE * sizeof(char *));
-
+    int num;
+    for (num = 0; num < HISTORY_MAX_SIZE; num++)
+    {
+        history_list[num] = NULL;
+    }
     // A loop that runs forever.
     while (1)
     {
@@ -306,7 +304,7 @@ int main()
         free(tokens);
     }
 
-    int index;
+    int index = 0;
     for (index = 0; index < HISTORY_MAX_SIZE; index++)
     {
         free(history_list[index]);
