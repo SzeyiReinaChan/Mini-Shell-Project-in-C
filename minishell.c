@@ -171,6 +171,7 @@ int test_multi_commands(char **tokens, int bar_pos)
 {
     int x = 0;
     int y = 0;
+
     char **front = malloc(MAX_BUFFER_SIZE * sizeof(char *));
     char **back = malloc(MAX_BUFFER_SIZE * sizeof(char *));
 
@@ -283,6 +284,12 @@ int main()
         //create array to save tokens
         char **tokens = malloc(MAX_BUFFER_SIZE * sizeof(char *));
         char *token;
+        int count;
+
+        for (count = 0; count < MAX_BUFFER_SIZE; count++)
+        {
+            tokens[count] = NULL;
+        }
 
         //saving history
         if (strcmp(line, "") != 0)
